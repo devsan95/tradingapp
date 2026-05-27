@@ -75,6 +75,7 @@
                 <div class="price-block">
                   <strong id="activePrice">--</strong>
                   <span id="activeChange" class="change-pill">--</span>
+                  <button class="button secondary small" id="refreshQuotes" type="button">Refresh live</button>
                 </div>
               </div>
 
@@ -169,10 +170,10 @@
               <p class="eyebrow">Built-in guardrails</p>
               <h2>Designed for learning, not brokerage execution.</h2>
               <p>
-                NSEPulse uses Yahoo Finance's free public chart endpoint for quote
-                snapshots where available and falls back to demo data if the endpoint
-                is unavailable. Orders are simulated locally and never sent to an
-                exchange or broker.
+                NSEPulse uses a local Vite API proxy to request quote snapshots
+                from Yahoo Finance's free public chart endpoint and falls back to
+                demo data if the endpoint is unavailable. Orders are simulated
+                locally and never sent to an exchange or broker.
               </p>
             </div>
             <div class="insight-list">

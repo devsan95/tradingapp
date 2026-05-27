@@ -1,6 +1,7 @@
 import "./styles.css";
 
-const API_BASE = "https://query1.finance.yahoo.com/v8/finance/chart";
+const API_ENDPOINT = "/api/chart";
+const LIVE_REFRESH_MS = 30 * 1000;
 
 const NSE_SYMBOLS = [
   { symbol: "RELIANCE.NS", short: "RELIANCE", name: "Reliance Industries", sector: "Energy" },
@@ -44,7 +45,8 @@ const state = {
   activeRange: "5d",
   activeInterval: "15m",
   orderSide: "buy",
-  latestQuotes: new Map()
+  latestQuotes: new Map(),
+  refreshing: false
 };
 
 const els = {
@@ -56,6 +58,7 @@ const els = {
   activeSymbolMeta: document.querySelector("#activeSymbolMeta"),
   activePrice: document.querySelector("#activePrice"),
   activeChange: document.querySelector("#activeChange"),
+  refreshQuotes: document.querySelector("#refreshQuotes"),
   priceChart: document.querySelector("#priceChart"),
   quoteStats: document.querySelector("#quoteStats"),
   rangeSwitcher: document.querySelector(".range-switcher"),
@@ -193,10 +196,10 @@ async function fetchSnapshot(symbol, range = "1mo", interval = "1d") {
   const timeout = window.setTimeout(() => controller.abort(), 7000);
 
   try {
-    const url = new URL(`${API_BASE}/${encodeURIComponent(symbol)}`);
+    const url = new URL(API_ENDPOINT, window.location.origin);
+    url.searchParams.set("symbol", symbol);
     url.searchParams.set("range", range);
     url.searchParams.set("interval", interval);
-    url.searchParams.set("includePrePost", "false");
 
     const response = await fetch(url, {
       cache: "no-store",
@@ -257,7 +260,7 @@ function parseYahooSnapshot(symbol, result) {
     low: meta.regularMarketDayLow ?? Math.min(...chartCloses, price),
     volume: meta.regularMarketVolume ?? quote.volume?.findLast(Number.isFinite) ?? 0,
     updatedAt: meta.regularMarketTime ? new Date(meta.regularMarketTime * 1000) : new Date(),
-    source: "Yahoo Finance public chart API",
+    source: "Live via local Yahoo Finance proxy",
     series: series.length ? series : buildFallbackSeries(symbol, price, "1mo")
   };
 }
@@ -400,8 +403,10 @@ function buildChart(series, isPositive, size = "small") {
   `;
 }
 
-async function loadWatchlist() {
-  els.watchlistGrid.innerHTML = NSE_SYMBOLS.map((stock) => renderWatchCard(stock)).join("");
+async function loadWatchlist(showPlaceholders = true) {
+  if (showPlaceholders || !els.watchlistGrid.children.length) {
+    els.watchlistGrid.innerHTML = NSE_SYMBOLS.map((stock) => renderWatchCard(stock)).join("");
+  }
 
   const snapshots = await Promise.all(
     NSE_SYMBOLS.map(async (stock) => {
@@ -419,6 +424,28 @@ async function loadWatchlist() {
     : "Demo fallback data";
   highlightActiveWatchCard();
   renderPortfolio();
+}
+
+async function refreshLiveData(silent = true) {
+  if (state.refreshing) {
+    return;
+  }
+
+  state.refreshing = true;
+  els.refreshQuotes.disabled = true;
+  els.refreshQuotes.textContent = "Refreshing...";
+
+  try {
+    await Promise.all([loadActiveSymbol(state.activeSymbol), loadWatchlist(false)]);
+
+    if (!silent) {
+      showToast("Live stock data refreshed.");
+    }
+  } finally {
+    state.refreshing = false;
+    els.refreshQuotes.disabled = false;
+    els.refreshQuotes.textContent = "Refresh live";
+  }
 }
 
 function renderWatchCard(stock, snapshot = null) {
@@ -530,6 +557,8 @@ function bindEvents() {
     loadActiveSymbol(symbol);
   });
 
+  els.refreshQuotes.addEventListener("click", () => refreshLiveData(false));
+
   els.rangeSwitcher.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-range]");
 
@@ -593,9 +622,9 @@ function init() {
   renderOrderSymbols();
   renderPortfolio();
   bindEvents();
-  loadActiveSymbol();
-  loadWatchlist();
+  refreshLiveData();
   window.setInterval(renderMarketStatus, 60 * 1000);
+  window.setInterval(refreshLiveData, LIVE_REFRESH_MS);
 }
 
 init();
