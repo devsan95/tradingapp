@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A responsive NSE trading dashboard with live quotes, broker routing, risk controls, and order tracking."
+    />
+    <title>NSEPulse Trading App</title>
+  </head>
+  <body>
+    <div id="app">
+      <div class="app-shell">
+        <header class="topbar" aria-label="Primary navigation">
+          <a class="brand" href="#top" aria-label="NSEPulse home">
+            <span class="brand-mark">NP</span>
+            <span>
+              <strong>NSEPulse</strong>
+              <small>Indian market desk</small>
+            </span>
+          </a>
+
+          <nav class="topnav" aria-label="Dashboard sections">
+            <a href="#watchlist">Watchlist</a>
+            <a href="#trade">Trade</a>
+            <a href="#portfolio">Portfolio</a>
+            <a href="#orders">Orders</a>
+          </nav>
+
+          <div class="market-status" id="marketStatus">
+            <span class="status-dot"></span>
+            <span>Checking market</span>
+          </div>
+        </header>
+
+        <main id="top">
+          <section class="hero">
+            <div class="hero-copy">
+              <p class="eyebrow">NSE trading cockpit</p>
+              <h1>Track live quotes, size risk, and route broker orders from one desk.</h1>
+              <p>
+                Explore popular NSE equities, monitor fast quote updates, validate risk,
+                and switch from paper practice to broker-routed orders when your local
+                credentials are configured.
+              </p>
+              <div class="hero-actions">
+                <a class="button primary" href="#trade">Open ticket</a>
+                <a class="button secondary" href="#watchlist">View watchlist</a>
+              </div>
+            </div>
+
+            <form class="search-card" id="symbolSearch" role="search">
+              <label for="symbolInput">Search NSE symbol</label>
+              <div class="search-row">
+                <input
+                  id="symbolInput"
+                  name="symbol"
+                  type="search"
+                  autocomplete="off"
+                  placeholder="RELIANCE, TCS, INFY..."
+                />
+                <button class="button primary" type="submit">Load</button>
+              </div>
+              <div class="quick-symbols" id="quickSymbols" aria-label="Popular symbols"></div>
+            </form>
+          </section>
+
+          <section class="dashboard-grid" aria-label="Market dashboard">
+            <article class="panel chart-panel" aria-live="polite">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Live quote</p>
+                  <h2 id="activeSymbolName">Loading...</h2>
+                  <span id="activeSymbolMeta" class="muted">Fetching market data</span>
+                </div>
+                <div class="price-block">
+                  <strong id="activePrice">--</strong>
+                  <span id="activeChange" class="change-pill">--</span>
+                  <button class="button secondary small" id="refreshQuotes" type="button">Refresh live</button>
+                </div>
+              </div>
+
+              <div id="priceChart" class="price-chart" role="img" aria-label="Price chart"></div>
+
+              <div class="range-switcher" aria-label="Chart range">
+                <button data-range="5d" data-interval="15m" class="active" type="button">5D</button>
+                <button data-range="1mo" data-interval="1d" type="button">1M</button>
+                <button data-range="6mo" data-interval="1d" type="button">6M</button>
+                <button data-range="1y" data-interval="1wk" type="button">1Y</button>
+              </div>
+
+              <div class="stat-grid" id="quoteStats"></div>
+            </article>
+
+            <aside class="panel order-panel" id="trade">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="eyebrow">Broker order</p>
+                  <h2>Trade ticket</h2>
+                </div>
+                <span class="chip" id="orderModeChip">Checking mode</span>
+              </div>
+
+              <div class="side-toggle" role="group" aria-label="Instant order actions">
+                <button class="active" data-side="buy" type="button">Buy now</button>
+                <button data-side="sell" type="button">Sell now</button>
+              </div>
+
+              <form id="orderForm" class="order-form">
+                <label>
+                  Symbol
+                  <select id="orderSymbol"></select>
+                </label>
+                <label>
+                  Quantity
+                  <input id="orderQty" type="number" min="1" step="1" value="10" />
+                </label>
+                <div class="form-row">
+                  <label>
+                    Order type
+                    <select id="orderType">
+                      <option value="LIMIT">Limit</option>
+                      <option value="MARKET">Market</option>
+                    </select>
+                  </label>
+                  <label>
+                    Product
+                    <select id="orderProduct">
+                      <option value="CNC">Delivery</option>
+                      <option value="MIS">Intraday</option>
+                    </select>
+                  </label>
+                </div>
+                <label>
+                  Limit price
+                  <input id="orderPrice" type="number" min="1" step="0.05" />
+                </label>
+                <div class="form-row">
+                  <label>
+                    Stop loss
+                    <input id="stopLossPrice" type="number" min="0" step="0.05" placeholder="Optional" />
+                  </label>
+                  <label>
+                    Target
+                    <input id="targetPrice" type="number" min="0" step="0.05" placeholder="Optional" />
+                  </label>
+                </div>
+                <div class="risk-grid" id="riskGrid">
+                  <div>
+                    <span>Order value</span>
+                    <strong id="orderEstimate">--</strong>
+                  </div>
+                  <div>
+                    <span>Risk</span>
+                    <strong id="riskAmount">--</strong>
+                  </div>
+                  <div>
+                    <span>Reward</span>
+                    <strong id="rewardAmount">--</strong>
+                  </div>
+                  <div>
+                    <span>R:R</span>
+                    <strong id="riskReward">--</strong>
+                  </div>
+                </div>
+                <label class="confirm-live">
+                  <input id="confirmLiveOrder" type="checkbox" />
+                  I understand Buy/Sell sends live orders to my configured broker.
+                </label>
+                <p class="order-disclaimer" id="orderDisclaimer">
+                  Paper mode is active until broker environment variables are configured.
+                </p>
+                <button class="button primary wide" id="submitOrder" type="submit">Place paper order</button>
+              </form>
+            </aside>
+          </section>
+
+          <section class="content-grid">
+            <article class="panel" id="watchlist">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="eyebrow">Market scan</p>
+                  <h2>Curated watchlist</h2>
+                </div>
+                <span class="muted" id="dataSource">Free public API</span>
+              </div>
+              <div class="watchlist-grid" id="watchlistGrid"></div>
+            </article>
+
+            <article class="panel" id="portfolio">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="eyebrow">Practice portfolio</p>
+                  <h2>Positions</h2>
+                </div>
+                <span class="chip positive">Paper P&L</span>
+              </div>
+              <div class="portfolio-summary">
+                <div>
+                  <span>Invested</span>
+                  <strong id="investedValue">--</strong>
+                </div>
+                <div>
+                  <span>Current value</span>
+                  <strong id="currentValue">--</strong>
+                </div>
+                <div>
+                  <span>Unrealized P&L</span>
+                  <strong id="portfolioPnl">--</strong>
+                </div>
+              </div>
+              <div class="positions" id="positionsList"></div>
+            </article>
+
+            <article class="panel" id="orders">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="eyebrow">Execution log</p>
+                  <h2>Recent orders</h2>
+                </div>
+                <button class="button secondary small" id="clearOrders" type="button">Clear</button>
+              </div>
+              <div class="order-blotter" id="orderBlotter"></div>
+            </article>
+          </section>
+
+          <section class="panel insight-panel">
+            <div>
+              <p class="eyebrow">Built-in guardrails</p>
+              <h2>Designed for broker-backed trading with safeguards.</h2>
+              <p>
+                NSEPulse uses a local Vite API proxy to request quote snapshots
+                from Yahoo Finance's free public chart endpoint and can route
+                orders through supported broker APIs when credentials are
+                configured locally. Paper mode stays enabled until live broker
+                mode is explicitly configured.
+              </p>
+            </div>
+            <div class="insight-list">
+              <span>Responsive layout</span>
+              <span>NSE .NS symbols</span>
+              <span>Broker gated orders</span>
+              <span>Risk checks</span>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
