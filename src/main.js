@@ -1,6 +1,8 @@
 import "./styles.css";
 
 const API_ENDPOINT = "/api/chart";
+const ORDER_MODE_ENDPOINT = "/api/order-mode";
+const ORDER_ENDPOINT = "/api/orders";
 const LIVE_REFRESH_MS = 30 * 1000;
 
 const NSE_SYMBOLS = [
@@ -46,7 +48,12 @@ const state = {
   activeInterval: "15m",
   orderSide: "buy",
   latestQuotes: new Map(),
-  refreshing: false
+  refreshing: false,
+  submittingOrder: false,
+  orderConfig: {
+    mode: "paper",
+    broker: "paper"
+  }
 };
 
 const els = {
@@ -64,8 +71,14 @@ const els = {
   rangeSwitcher: document.querySelector(".range-switcher"),
   orderSymbol: document.querySelector("#orderSymbol"),
   orderQty: document.querySelector("#orderQty"),
+  orderType: document.querySelector("#orderType"),
+  orderProduct: document.querySelector("#orderProduct"),
   orderPrice: document.querySelector("#orderPrice"),
+  confirmLiveOrder: document.querySelector("#confirmLiveOrder"),
   orderEstimate: document.querySelector("#orderEstimate"),
+  orderModeChip: document.querySelector("#orderModeChip"),
+  orderDisclaimer: document.querySelector("#orderDisclaimer"),
+  submitOrder: document.querySelector("#submitOrder"),
   sideToggle: document.querySelector(".side-toggle"),
   orderForm: document.querySelector("#orderForm"),
   watchlistGrid: document.querySelector("#watchlistGrid"),
@@ -496,6 +509,93 @@ function updateOrderEstimate() {
   els.orderEstimate.textContent = Number.isFinite(estimate) ? formatCurrency(estimate) : "--";
 }
 
+function renderOrderMode() {
+  const isLive = state.orderConfig.mode === "live";
+  const brokerName = state.orderConfig.broker === "paper" ? "paper" : state.orderConfig.broker.toUpperCase();
+
+  els.orderModeChip.textContent = isLive ? `Live via ${brokerName}` : "Paper mode";
+  els.orderModeChip.className = `chip ${isLive ? "negative" : ""}`;
+  els.submitOrder.textContent = isLive ? "Send live broker order" : "Place paper order";
+  els.orderDisclaimer.textContent = isLive
+    ? `Live mode is enabled. Orders are sent to ${brokerName} using your local broker token; review every order before submitting.`
+    : "Paper mode is active. Set broker environment variables locally to enable live order routing.";
+}
+
+async function loadOrderMode() {
+  try {
+    const response = await fetch(ORDER_MODE_ENDPOINT, { cache: "no-store" });
+
+    if (!response.ok) {
+      throw new Error(`Order mode request failed with ${response.status}`);
+    }
+
+    state.orderConfig = await response.json();
+  } catch (error) {
+    console.info("Using paper order mode:", error.message);
+    state.orderConfig = { mode: "paper", broker: "paper" };
+  }
+
+  renderOrderMode();
+}
+
+async function submitOrder() {
+  if (state.submittingOrder) {
+    return;
+  }
+
+  const side = state.orderSide.toUpperCase();
+  const quantity = Number(els.orderQty.value);
+  const symbol = els.orderSymbol.value;
+  const price = Number(els.orderPrice.value);
+  const orderType = els.orderType.value;
+
+  if (!Number.isFinite(quantity) || quantity <= 0) {
+    showToast("Enter a valid quantity.");
+    return;
+  }
+
+  if (orderType === "LIMIT" && (!Number.isFinite(price) || price <= 0)) {
+    showToast("Enter a valid limit price.");
+    return;
+  }
+
+  state.submittingOrder = true;
+  els.submitOrder.disabled = true;
+  els.submitOrder.textContent = state.orderConfig.mode === "live" ? "Sending..." : "Placing...";
+
+  try {
+    const response = await fetch(ORDER_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        symbol,
+        side,
+        quantity,
+        orderType,
+        product: els.orderProduct.value,
+        price: orderType === "MARKET" ? 0 : price,
+        confirmLiveOrder: els.confirmLiveOrder.checked
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(payload.error || `Order request failed with ${response.status}`);
+    }
+
+    const orderId = payload.orderId || payload.raw?.order_id || payload.raw?.data?.order_id || "accepted";
+    showToast(`${payload.mode === "live" ? "Live" : "Paper"} ${side} order ${orderId} submitted.`);
+  } catch (error) {
+    showToast(error.message);
+  } finally {
+    state.submittingOrder = false;
+    els.submitOrder.disabled = false;
+    renderOrderMode();
+  }
+}
+
 function renderPortfolio() {
   const rows = PAPER_POSITIONS.map((position) => {
     const snapshot = state.latestQuotes.get(position.symbol) ?? getFallbackSnapshot(position.symbol);
@@ -586,6 +686,11 @@ function bindEvents() {
   els.orderSymbol.addEventListener("change", () => loadActiveSymbol(els.orderSymbol.value));
   els.orderQty.addEventListener("input", updateOrderEstimate);
   els.orderPrice.addEventListener("input", updateOrderEstimate);
+  els.orderType.addEventListener("change", () => {
+    const isMarket = els.orderType.value === "MARKET";
+    els.orderPrice.disabled = isMarket;
+    updateOrderEstimate();
+  });
 
   els.sideToggle.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-side]");
@@ -602,17 +707,7 @@ function bindEvents() {
 
   els.orderForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    const side = state.orderSide.toUpperCase();
-    const quantity = Number(els.orderQty.value);
-    const symbol = els.orderSymbol.value;
-    const price = Number(els.orderPrice.value);
-
-    if (!Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(price) || price <= 0) {
-      showToast("Enter a valid quantity and limit price.");
-      return;
-    }
-
-    showToast(`${side} paper order ready: ${quantity} ${symbol} @ ${formatCurrency(price)}.`);
+    submitOrder();
   });
 }
 
@@ -620,8 +715,10 @@ function init() {
   renderMarketStatus();
   renderQuickSymbols();
   renderOrderSymbols();
+  renderOrderMode();
   renderPortfolio();
   bindEvents();
+  loadOrderMode();
   refreshLiveData();
   window.setInterval(renderMarketStatus, 60 * 1000);
   window.setInterval(refreshLiveData, LIVE_REFRESH_MS);

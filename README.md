@@ -11,6 +11,7 @@ vanilla JavaScript.
 - Automatic live quote refresh every 30 seconds, plus manual refresh
 - Interactive price chart ranges
 - Paper trade ticket for buy/sell practice orders
+- Broker order endpoint for Zerodha Kite or Upstox live routing when configured
 - Practice portfolio with unrealized P&L
 
 ## Run locally
@@ -38,4 +39,46 @@ Public free feeds may be delayed or rate limited. For real-money execution, use
 an exchange-authorized broker/data vendor API.
 
 This is a paper trading/learning interface only. It does not connect to an NSE
-broker, place real orders, or provide financial advice.
+broker by default or provide financial advice.
+
+## Live order routing
+
+Retail apps cannot send orders directly to NSE. Live orders must go through your
+SEBI-registered broker account after KYC, broker API approval, and local access
+token setup. NSEPulse keeps paper mode enabled by default.
+
+To enable live order routing locally, set one of these broker configurations
+before running `npm run dev`:
+
+### Zerodha Kite
+
+```bash
+NSEPULSE_TRADING_MODE=live \
+NSEPULSE_BROKER=zerodha \
+KITE_API_KEY=your_api_key \
+KITE_ACCESS_TOKEN=your_access_token \
+npm run dev
+```
+
+### Upstox
+
+```bash
+NSEPULSE_TRADING_MODE=live \
+NSEPULSE_BROKER=upstox \
+UPSTOX_ACCESS_TOKEN=your_access_token \
+npm run dev
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:NSEPULSE_TRADING_MODE="live"
+$env:NSEPULSE_BROKER="zerodha"
+$env:KITE_API_KEY="your_api_key"
+$env:KITE_ACCESS_TOKEN="your_access_token"
+npm run dev
+```
+
+The app requires the live-order confirmation checkbox before it forwards an
+order to the configured broker. Keep credentials out of Git and never expose
+access tokens in client-side code.

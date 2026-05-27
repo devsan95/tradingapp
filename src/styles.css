@@ -532,6 +532,33 @@ select:focus {
   gap: 14px;
 }
 
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.confirm-live {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  color: #cbd8e6;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.confirm-live input {
+  width: 18px;
+  min-height: 18px;
+  margin-top: 2px;
+}
+
+.order-disclaimer {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .order-estimate {
   justify-content: space-between;
   gap: 14px;
@@ -730,5 +757,9 @@ select:focus {
 
   .range-switcher button {
     flex: 1;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
   }
 }

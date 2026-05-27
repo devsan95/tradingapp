@@ -94,10 +94,10 @@
             <aside class="panel order-panel" id="trade">
               <div class="panel-heading compact">
                 <div>
-                  <p class="eyebrow">Paper order</p>
+                  <p class="eyebrow">Broker order</p>
                   <h2>Trade ticket</h2>
                 </div>
-                <span class="chip">No real orders</span>
+                <span class="chip" id="orderModeChip">Checking mode</span>
               </div>
 
               <div class="side-toggle" role="tablist" aria-label="Order side">
@@ -114,15 +114,38 @@
                   Quantity
                   <input id="orderQty" type="number" min="1" step="1" value="10" />
                 </label>
+                <div class="form-row">
+                  <label>
+                    Order type
+                    <select id="orderType">
+                      <option value="LIMIT">Limit</option>
+                      <option value="MARKET">Market</option>
+                    </select>
+                  </label>
+                  <label>
+                    Product
+                    <select id="orderProduct">
+                      <option value="CNC">Delivery</option>
+                      <option value="MIS">Intraday</option>
+                    </select>
+                  </label>
+                </div>
                 <label>
                   Limit price
                   <input id="orderPrice" type="number" min="1" step="0.05" />
                 </label>
+                <label class="confirm-live">
+                  <input id="confirmLiveOrder" type="checkbox" />
+                  I understand live mode sends this order to my configured broker.
+                </label>
+                <p class="order-disclaimer" id="orderDisclaimer">
+                  Paper mode is active until broker environment variables are configured.
+                </p>
                 <div class="order-estimate">
                   <span>Estimated value</span>
                   <strong id="orderEstimate">--</strong>
                 </div>
-                <button class="button primary wide" type="submit">Place paper order</button>
+                <button class="button primary wide" id="submitOrder" type="submit">Place paper order</button>
               </form>
             </aside>
           </section>
