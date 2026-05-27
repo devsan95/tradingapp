@@ -1,0 +1,22 @@
+{
+  "name": "nse-trading-app",
+  "version": "1.0.0",
+  "description": "Responsive NSE stock trading dashboard using a free public market data API.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "keywords": [
+    "nse",
+    "stocks",
+    "trading",
+    "dashboard"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "vite": "^8.0.14"
+  }
+}
