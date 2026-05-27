@@ -551,12 +551,12 @@ function renderOrderMode() {
 
   els.orderModeChip.textContent = isLive ? `Live via ${brokerName}` : "Paper mode";
   els.orderModeChip.className = `chip ${isLive ? "negative" : ""}`;
-  els.submitOrder.textContent = isLive ? "Send live broker order" : "Place paper order";
+  els.submitOrder.textContent = isLive ? "Submit selected live order" : "Submit selected paper order";
   els.orderDisclaimer.textContent = isLive
-    ? `Live mode is enabled. Orders are sent to ${brokerName} using your local broker token. Max order value: ${formatCurrency(
+    ? `Live mode is enabled. Buy now and Sell now send orders to ${brokerName} using your local broker token. Max order value: ${formatCurrency(
         state.orderConfig.maxOrderValue
       )}.`
-    : `Paper mode is active. Set broker environment variables locally to enable live order routing. Max order value: ${formatCurrency(
+    : `Paper mode is active. Buy now and Sell now submit simulated orders. Set broker environment variables locally to enable live routing. Max order value: ${formatCurrency(
         state.orderConfig.maxOrderValue
       )}.`;
 }
@@ -578,11 +578,19 @@ async function loadOrderMode() {
   renderOrderMode();
 }
 
-async function submitOrder() {
+function setOrderControlsDisabled(disabled) {
+  els.submitOrder.disabled = disabled;
+  els.sideToggle.querySelectorAll("button").forEach((button) => {
+    button.disabled = disabled;
+  });
+}
+
+async function submitOrder(sideOverride = state.orderSide) {
   if (state.submittingOrder) {
     return;
   }
 
+  state.orderSide = sideOverride;
   const side = state.orderSide.toUpperCase();
   const quantity = Number(els.orderQty.value);
   const symbol = els.orderSymbol.value;
@@ -609,8 +617,8 @@ async function submitOrder() {
   }
 
   state.submittingOrder = true;
-  els.submitOrder.disabled = true;
-  els.submitOrder.textContent = state.orderConfig.mode === "live" ? "Sending..." : "Placing...";
+  setOrderControlsDisabled(true);
+  els.submitOrder.textContent = `${side} ${state.orderConfig.mode === "live" ? "sending..." : "placing..."}`;
 
   try {
     const response = await fetch(ORDER_ENDPOINT, {
@@ -658,7 +666,7 @@ async function submitOrder() {
     showToast(error.message);
   } finally {
     state.submittingOrder = false;
-    els.submitOrder.disabled = false;
+    setOrderControlsDisabled(false);
     renderOrderMode();
   }
 }
@@ -816,6 +824,7 @@ function bindEvents() {
       .querySelectorAll("button")
       .forEach((sideButton) => sideButton.classList.toggle("active", sideButton === button));
     updateOrderEstimate();
+    submitOrder(button.dataset.side);
   });
 
   els.clearOrders.addEventListener("click", () => {

@@ -10,7 +10,7 @@ vanilla JavaScript.
 - Free public Yahoo Finance chart endpoint integration through a local Vite API proxy
 - Automatic live quote refresh every 10 seconds, plus manual refresh
 - Interactive price chart ranges
-- Practical trade ticket with order type, product, stop loss, target, and risk/reward preview
+- Practical trade ticket with Buy now/Sell now execution buttons, order type, product, stop loss, target, and risk/reward preview
 - Broker order endpoint for Zerodha Kite or Upstox live routing when configured
 - Recent order blotter stored locally in the browser
 - Practice portfolio with unrealized P&L

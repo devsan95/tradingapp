@@ -102,9 +102,9 @@
                 <span class="chip" id="orderModeChip">Checking mode</span>
               </div>
 
-              <div class="side-toggle" role="tablist" aria-label="Order side">
-                <button class="active" data-side="buy" type="button">Buy</button>
-                <button data-side="sell" type="button">Sell</button>
+              <div class="side-toggle" role="group" aria-label="Instant order actions">
+                <button class="active" data-side="buy" type="button">Buy now</button>
+                <button data-side="sell" type="button">Sell now</button>
               </div>
 
               <form id="orderForm" class="order-form">
@@ -166,7 +166,7 @@
                 </div>
                 <label class="confirm-live">
                   <input id="confirmLiveOrder" type="checkbox" />
-                  I understand live mode sends this order to my configured broker.
+                  I understand Buy/Sell sends live orders to my configured broker.
                 </label>
                 <p class="order-disclaimer" id="orderDisclaimer">
                   Paper mode is active until broker environment variables are configured.
