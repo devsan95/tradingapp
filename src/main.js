@@ -3,7 +3,8 @@ import "./styles.css";
 const API_ENDPOINT = "/api/chart";
 const ORDER_MODE_ENDPOINT = "/api/order-mode";
 const ORDER_ENDPOINT = "/api/orders";
-const LIVE_REFRESH_MS = 30 * 1000;
+const LIVE_REFRESH_MS = 10 * 1000;
+const ORDER_HISTORY_KEY = "nsepulse.orders";
 
 const NSE_SYMBOLS = [
   { symbol: "RELIANCE.NS", short: "RELIANCE", name: "Reliance Industries", sector: "Energy" },
@@ -52,8 +53,10 @@ const state = {
   submittingOrder: false,
   orderConfig: {
     mode: "paper",
-    broker: "paper"
-  }
+    broker: "paper",
+    maxOrderValue: 200000
+  },
+  orders: loadStoredOrders()
 };
 
 const els = {
@@ -74,8 +77,13 @@ const els = {
   orderType: document.querySelector("#orderType"),
   orderProduct: document.querySelector("#orderProduct"),
   orderPrice: document.querySelector("#orderPrice"),
+  stopLossPrice: document.querySelector("#stopLossPrice"),
+  targetPrice: document.querySelector("#targetPrice"),
   confirmLiveOrder: document.querySelector("#confirmLiveOrder"),
   orderEstimate: document.querySelector("#orderEstimate"),
+  riskAmount: document.querySelector("#riskAmount"),
+  rewardAmount: document.querySelector("#rewardAmount"),
+  riskReward: document.querySelector("#riskReward"),
   orderModeChip: document.querySelector("#orderModeChip"),
   orderDisclaimer: document.querySelector("#orderDisclaimer"),
   submitOrder: document.querySelector("#submitOrder"),
@@ -87,8 +95,23 @@ const els = {
   currentValue: document.querySelector("#currentValue"),
   portfolioPnl: document.querySelector("#portfolioPnl"),
   positionsList: document.querySelector("#positionsList"),
+  orderBlotter: document.querySelector("#orderBlotter"),
+  clearOrders: document.querySelector("#clearOrders"),
   toast: document.querySelector("#toast")
 };
+
+function loadStoredOrders() {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(ORDER_HISTORY_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.slice(0, 25) : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistOrders() {
+  window.localStorage.setItem(ORDER_HISTORY_KEY, JSON.stringify(state.orders.slice(0, 25)));
+}
 
 function formatCurrency(value, compact = false) {
   if (!Number.isFinite(value)) {
@@ -504,9 +527,22 @@ function updateOrderFromQuote(snapshot = state.latestQuotes.get(state.activeSymb
 function updateOrderEstimate() {
   const quantity = Number(els.orderQty.value);
   const price = Number(els.orderPrice.value);
+  const stopLoss = Number(els.stopLossPrice.value);
+  const target = Number(els.targetPrice.value);
   const estimate = quantity * price;
+  const isBuy = state.orderSide === "buy";
+  const riskPerShare =
+    Number.isFinite(stopLoss) && stopLoss > 0 ? (isBuy ? price - stopLoss : stopLoss - price) : NaN;
+  const rewardPerShare =
+    Number.isFinite(target) && target > 0 ? (isBuy ? target - price : price - target) : NaN;
+  const risk = riskPerShare > 0 ? riskPerShare * quantity : NaN;
+  const reward = rewardPerShare > 0 ? rewardPerShare * quantity : NaN;
+  const rr = Number.isFinite(risk) && risk > 0 && Number.isFinite(reward) ? reward / risk : NaN;
 
   els.orderEstimate.textContent = Number.isFinite(estimate) ? formatCurrency(estimate) : "--";
+  els.riskAmount.textContent = Number.isFinite(risk) ? formatCurrency(risk) : "--";
+  els.rewardAmount.textContent = Number.isFinite(reward) ? formatCurrency(reward) : "--";
+  els.riskReward.textContent = Number.isFinite(rr) ? `1:${rr.toFixed(2)}` : "--";
 }
 
 function renderOrderMode() {
@@ -517,8 +553,12 @@ function renderOrderMode() {
   els.orderModeChip.className = `chip ${isLive ? "negative" : ""}`;
   els.submitOrder.textContent = isLive ? "Send live broker order" : "Place paper order";
   els.orderDisclaimer.textContent = isLive
-    ? `Live mode is enabled. Orders are sent to ${brokerName} using your local broker token; review every order before submitting.`
-    : "Paper mode is active. Set broker environment variables locally to enable live order routing.";
+    ? `Live mode is enabled. Orders are sent to ${brokerName} using your local broker token. Max order value: ${formatCurrency(
+        state.orderConfig.maxOrderValue
+      )}.`
+    : `Paper mode is active. Set broker environment variables locally to enable live order routing. Max order value: ${formatCurrency(
+        state.orderConfig.maxOrderValue
+      )}.`;
 }
 
 async function loadOrderMode() {
@@ -547,7 +587,11 @@ async function submitOrder() {
   const quantity = Number(els.orderQty.value);
   const symbol = els.orderSymbol.value;
   const price = Number(els.orderPrice.value);
+  const stopLoss = Number(els.stopLossPrice.value);
+  const target = Number(els.targetPrice.value);
   const orderType = els.orderType.value;
+  const effectivePrice = orderType === "MARKET" ? state.latestQuotes.get(symbol)?.price ?? price : price;
+  const orderValue = quantity * effectivePrice;
 
   if (!Number.isFinite(quantity) || quantity <= 0) {
     showToast("Enter a valid quantity.");
@@ -556,6 +600,11 @@ async function submitOrder() {
 
   if (orderType === "LIMIT" && (!Number.isFinite(price) || price <= 0)) {
     showToast("Enter a valid limit price.");
+    return;
+  }
+
+  if (!Number.isFinite(orderValue) || orderValue > state.orderConfig.maxOrderValue) {
+    showToast(`Order value exceeds ${formatCurrency(state.orderConfig.maxOrderValue)} limit.`);
     return;
   }
 
@@ -576,6 +625,9 @@ async function submitOrder() {
         orderType,
         product: els.orderProduct.value,
         price: orderType === "MARKET" ? 0 : price,
+        estimatedPrice: effectivePrice,
+        stopLoss: Number.isFinite(stopLoss) && stopLoss > 0 ? stopLoss : null,
+        target: Number.isFinite(target) && target > 0 ? target : null,
         confirmLiveOrder: els.confirmLiveOrder.checked
       })
     });
@@ -586,6 +638,21 @@ async function submitOrder() {
     }
 
     const orderId = payload.orderId || payload.raw?.order_id || payload.raw?.data?.order_id || "accepted";
+    recordOrder({
+      id: orderId,
+      mode: payload.mode,
+      broker: payload.broker,
+      symbol,
+      side,
+      quantity,
+      orderType,
+      product: els.orderProduct.value,
+      price: orderType === "MARKET" ? effectivePrice : price,
+      stopLoss: Number.isFinite(stopLoss) && stopLoss > 0 ? stopLoss : null,
+      target: Number.isFinite(target) && target > 0 ? target : null,
+      status: payload.mode === "live" ? "Sent to broker" : "Paper filled",
+      timestamp: new Date().toISOString()
+    });
     showToast(`${payload.mode === "live" ? "Live" : "Paper"} ${side} order ${orderId} submitted.`);
   } catch (error) {
     showToast(error.message);
@@ -594,6 +661,49 @@ async function submitOrder() {
     els.submitOrder.disabled = false;
     renderOrderMode();
   }
+}
+
+function recordOrder(order) {
+  state.orders = [order, ...state.orders].slice(0, 25);
+  persistOrders();
+  renderOrderBlotter();
+}
+
+function renderOrderBlotter() {
+  if (!state.orders.length) {
+    els.orderBlotter.innerHTML = `<div class="empty-state">No orders yet. Submitted paper and broker orders appear here.</div>`;
+    return;
+  }
+
+  els.orderBlotter.innerHTML = state.orders
+    .map((order) => {
+      const isBuy = order.side === "BUY";
+      const time = new Date(order.timestamp).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+      const protection = [order.stopLoss ? `SL ${formatCurrency(order.stopLoss)}` : null, order.target ? `TGT ${formatCurrency(order.target)}` : null]
+        .filter(Boolean)
+        .join(" · ");
+
+      return `
+        <div class="order-row">
+          <div>
+            <strong class="${isBuy ? "positive-text" : "negative-text"}">${order.side} ${order.quantity} ${order.symbol}</strong>
+            <span>${order.mode?.toUpperCase() || "PAPER"} · ${order.orderType} · ${order.product} · ${
+              protection || "No protection levels"
+            }</span>
+          </div>
+          <div class="order-meta">
+            <strong>${formatCurrency(order.price)}</strong>
+            <span>${order.status} · ${time}</span>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
 }
 
 function renderPortfolio() {
@@ -686,6 +796,8 @@ function bindEvents() {
   els.orderSymbol.addEventListener("change", () => loadActiveSymbol(els.orderSymbol.value));
   els.orderQty.addEventListener("input", updateOrderEstimate);
   els.orderPrice.addEventListener("input", updateOrderEstimate);
+  els.stopLossPrice.addEventListener("input", updateOrderEstimate);
+  els.targetPrice.addEventListener("input", updateOrderEstimate);
   els.orderType.addEventListener("change", () => {
     const isMarket = els.orderType.value === "MARKET";
     els.orderPrice.disabled = isMarket;
@@ -703,6 +815,13 @@ function bindEvents() {
     els.sideToggle
       .querySelectorAll("button")
       .forEach((sideButton) => sideButton.classList.toggle("active", sideButton === button));
+    updateOrderEstimate();
+  });
+
+  els.clearOrders.addEventListener("click", () => {
+    state.orders = [];
+    persistOrders();
+    renderOrderBlotter();
   });
 
   els.orderForm.addEventListener("submit", (event) => {
@@ -716,6 +835,7 @@ function init() {
   renderQuickSymbols();
   renderOrderSymbols();
   renderOrderMode();
+  renderOrderBlotter();
   renderPortfolio();
   bindEvents();
   loadOrderMode();

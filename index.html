@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="A responsive NSE stock trading dashboard with watchlists, charts, and paper order flow."
+      content="A responsive NSE trading dashboard with live quotes, broker routing, risk controls, and order tracking."
     />
     <title>NSEPulse Trading App</title>
   </head>
@@ -25,6 +25,7 @@
             <a href="#watchlist">Watchlist</a>
             <a href="#trade">Trade</a>
             <a href="#portfolio">Portfolio</a>
+            <a href="#orders">Orders</a>
           </nav>
 
           <div class="market-status" id="marketStatus">
@@ -36,11 +37,12 @@
         <main id="top">
           <section class="hero">
             <div class="hero-copy">
-              <p class="eyebrow">NSE paper trading</p>
-              <h1>Track, analyze, and practice trades with a clean market cockpit.</h1>
+              <p class="eyebrow">NSE trading cockpit</p>
+              <h1>Track live quotes, size risk, and route broker orders from one desk.</h1>
               <p>
-                Explore popular NSE equities, monitor quick price action, and simulate
-                orders with a simple, responsive experience built for every screen.
+                Explore popular NSE equities, monitor fast quote updates, validate risk,
+                and switch from paper practice to broker-routed orders when your local
+                credentials are configured.
               </p>
               <div class="hero-actions">
                 <a class="button primary" href="#trade">Open ticket</a>
@@ -134,6 +136,34 @@
                   Limit price
                   <input id="orderPrice" type="number" min="1" step="0.05" />
                 </label>
+                <div class="form-row">
+                  <label>
+                    Stop loss
+                    <input id="stopLossPrice" type="number" min="0" step="0.05" placeholder="Optional" />
+                  </label>
+                  <label>
+                    Target
+                    <input id="targetPrice" type="number" min="0" step="0.05" placeholder="Optional" />
+                  </label>
+                </div>
+                <div class="risk-grid" id="riskGrid">
+                  <div>
+                    <span>Order value</span>
+                    <strong id="orderEstimate">--</strong>
+                  </div>
+                  <div>
+                    <span>Risk</span>
+                    <strong id="riskAmount">--</strong>
+                  </div>
+                  <div>
+                    <span>Reward</span>
+                    <strong id="rewardAmount">--</strong>
+                  </div>
+                  <div>
+                    <span>R:R</span>
+                    <strong id="riskReward">--</strong>
+                  </div>
+                </div>
                 <label class="confirm-live">
                   <input id="confirmLiveOrder" type="checkbox" />
                   I understand live mode sends this order to my configured broker.
@@ -141,10 +171,6 @@
                 <p class="order-disclaimer" id="orderDisclaimer">
                   Paper mode is active until broker environment variables are configured.
                 </p>
-                <div class="order-estimate">
-                  <span>Estimated value</span>
-                  <strong id="orderEstimate">--</strong>
-                </div>
                 <button class="button primary wide" id="submitOrder" type="submit">Place paper order</button>
               </form>
             </aside>
@@ -186,24 +212,36 @@
               </div>
               <div class="positions" id="positionsList"></div>
             </article>
+
+            <article class="panel" id="orders">
+              <div class="panel-heading compact">
+                <div>
+                  <p class="eyebrow">Execution log</p>
+                  <h2>Recent orders</h2>
+                </div>
+                <button class="button secondary small" id="clearOrders" type="button">Clear</button>
+              </div>
+              <div class="order-blotter" id="orderBlotter"></div>
+            </article>
           </section>
 
           <section class="panel insight-panel">
             <div>
               <p class="eyebrow">Built-in guardrails</p>
-              <h2>Designed for learning, not brokerage execution.</h2>
+              <h2>Designed for broker-backed trading with safeguards.</h2>
               <p>
                 NSEPulse uses a local Vite API proxy to request quote snapshots
-                from Yahoo Finance's free public chart endpoint and falls back to
-                demo data if the endpoint is unavailable. Orders are simulated
-                locally and never sent to an exchange or broker.
+                from Yahoo Finance's free public chart endpoint and can route
+                orders through supported broker APIs when credentials are
+                configured locally. Paper mode stays enabled until live broker
+                mode is explicitly configured.
               </p>
             </div>
             <div class="insight-list">
               <span>Responsive layout</span>
               <span>NSE .NS symbols</span>
-              <span>Paper trading only</span>
-              <span>No API key required</span>
+              <span>Broker gated orders</span>
+              <span>Risk checks</span>
             </div>
           </section>
         </main>

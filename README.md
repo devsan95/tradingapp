@@ -8,10 +8,11 @@ vanilla JavaScript.
 - Responsive market dashboard for mobile, tablet, and desktop screens
 - NSE `.NS` equity symbol search and curated watchlist
 - Free public Yahoo Finance chart endpoint integration through a local Vite API proxy
-- Automatic live quote refresh every 30 seconds, plus manual refresh
+- Automatic live quote refresh every 10 seconds, plus manual refresh
 - Interactive price chart ranges
-- Paper trade ticket for buy/sell practice orders
+- Practical trade ticket with order type, product, stop loss, target, and risk/reward preview
 - Broker order endpoint for Zerodha Kite or Upstox live routing when configured
+- Recent order blotter stored locally in the browser
 - Practice portfolio with unrealized P&L
 
 ## Run locally
@@ -82,3 +83,12 @@ npm run dev
 The app requires the live-order confirmation checkbox before it forwards an
 order to the configured broker. Keep credentials out of Git and never expose
 access tokens in client-side code.
+
+Optional guardrail:
+
+```bash
+NSEPULSE_MAX_ORDER_VALUE=50000 npm run dev
+```
+
+`NSEPULSE_MAX_ORDER_VALUE` caps each order's estimated value on both the client
+and local server. The default is `200000`.

@@ -559,6 +559,30 @@ select:focus {
   line-height: 1.5;
 }
 
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.risk-grid > div {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(46, 229, 157, 0.08);
+}
+
+.risk-grid span,
+.order-blotter span {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.risk-grid strong {
+  display: block;
+  margin-top: 5px;
+}
+
 .order-estimate {
   justify-content: space-between;
   gap: 14px;
@@ -628,6 +652,38 @@ select:focus {
 
 .position-row {
   padding: 14px;
+}
+
+.order-blotter {
+  display: grid;
+  gap: 10px;
+}
+
+.order-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.order-row strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.order-row .order-meta {
+  text-align: right;
+}
+
+.empty-state {
+  padding: 18px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  text-align: center;
 }
 
 .insight-panel {
@@ -761,5 +817,14 @@ select:focus {
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .risk-grid,
+  .order-row {
+    grid-template-columns: 1fr;
+  }
+
+  .order-row .order-meta {
+    text-align: left;
   }
 }

@@ -27,11 +27,14 @@ function getOrderConfig() {
   const requestedMode = process.env.NSEPULSE_TRADING_MODE?.toLowerCase();
   const broker = process.env.NSEPULSE_BROKER?.toLowerCase() || "paper";
   const isLive = requestedMode === "live" && ["zerodha", "upstox"].includes(broker);
+  const configuredMaxOrderValue = Number(process.env.NSEPULSE_MAX_ORDER_VALUE || 200000);
 
   return {
     mode: isLive ? "live" : "paper",
     broker: isLive ? broker : "paper",
-    supportedBrokers: ["zerodha", "upstox"]
+    supportedBrokers: ["zerodha", "upstox"],
+    maxOrderValue:
+      Number.isFinite(configuredMaxOrderValue) && configuredMaxOrderValue > 0 ? configuredMaxOrderValue : 200000
   };
 }
 
@@ -65,6 +68,9 @@ function validateOrder(order) {
   const product = String(order.product || "CNC").trim().toUpperCase();
   const quantity = Number(order.quantity);
   const price = Number(order.price || 0);
+  const estimatedPrice = Number(order.estimatedPrice || price);
+  const stopLoss = Number(order.stopLoss || 0);
+  const target = Number(order.target || 0);
 
   if (!symbol || !VALID_SYMBOL.test(symbol) || symbol.startsWith("^")) {
     throw new Error("Enter a valid NSE equity symbol.");
@@ -86,6 +92,10 @@ function validateOrder(order) {
     throw new Error("Limit orders require a positive price.");
   }
 
+  if (orderType === "MARKET" && (!Number.isFinite(estimatedPrice) || estimatedPrice <= 0)) {
+    throw new Error("Market orders require a positive estimated price for risk checks.");
+  }
+
   if (!["CNC", "MIS"].includes(product)) {
     throw new Error("Product must be CNC or MIS.");
   }
@@ -98,6 +108,9 @@ function validateOrder(order) {
     product,
     quantity,
     price: orderType === "MARKET" ? 0 : price,
+    estimatedPrice: orderType === "MARKET" ? estimatedPrice : price,
+    stopLoss: Number.isFinite(stopLoss) && stopLoss > 0 ? stopLoss : null,
+    target: Number.isFinite(target) && target > 0 ? target : null,
     confirmLiveOrder: Boolean(order.confirmLiveOrder)
   };
 }
@@ -249,6 +262,14 @@ function createOrderMiddleware() {
     try {
       const config = getOrderConfig();
       const order = validateOrder(await readJsonBody(request));
+      const orderValue = order.quantity * order.estimatedPrice;
+
+      if (orderValue > config.maxOrderValue) {
+        sendJson(response, 400, {
+          error: `Order value exceeds configured limit of INR ${config.maxOrderValue}.`
+        });
+        return;
+      }
 
       if (config.mode !== "live") {
         sendJson(response, 200, {
