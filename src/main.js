@@ -320,7 +320,7 @@ function renderMarketStatus() {
   const isOpen = isWeekday && minutes >= 9 * 60 + 15 && minutes <= 15 * 60 + 30;
 
   els.marketStatus.innerHTML = `
-    <span class="status-dot" style="background:${isOpen ? "var(--green)" : "var(--amber)"}; box-shadow:0 0 0 6px ${isOpen ? "rgba(46, 229, 157, 0.12)" : "rgba(255, 209, 102, 0.12)"}"></span>
+    <span class="status-dot" style="background:${isOpen ? "var(--blue)" : "var(--amber)"}; box-shadow:0 0 0 6px ${isOpen ? "rgba(37, 99, 235, 0.14)" : "rgba(96, 165, 250, 0.16)"}"></span>
     <span>${isOpen ? "NSE open" : "NSE closed"} · ${parts.hour}:${parts.minute} IST</span>
   `;
 }
@@ -402,7 +402,7 @@ function buildChart(series, isPositive, size = "small") {
   const min = Math.min(...closes);
   const max = Math.max(...closes);
   const spread = max - min || max * 0.01 || 1;
-  const color = isPositive ? "#2ee59d" : "#ff6b7a";
+  const color = isPositive ? "#0b74de" : "#1d4ed8";
   const points = closes.map((close, index) => {
     const x = padding + (index / (closes.length - 1)) * (width - padding * 2);
     const y = height - padding - ((close - min) / spread) * (height - padding * 2);
@@ -419,7 +419,7 @@ function buildChart(series, isPositive, size = "small") {
       ? [0.25, 0.5, 0.75]
           .map((step) => {
             const y = height * step;
-            return `<line x1="0" x2="${width}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,0.06)" />`;
+            return `<line x1="0" x2="${width}" y1="${y}" y2="${y}" stroke="rgba(37,99,235,0.1)" />`;
           })
           .join("")
       : "";

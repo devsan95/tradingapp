@@ -1,23 +1,23 @@
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  --bg: #061018;
-  --bg-soft: #0b1724;
-  --panel: rgba(13, 25, 39, 0.82);
-  --panel-strong: rgba(18, 34, 53, 0.94);
-  --line: rgba(148, 163, 184, 0.18);
-  --text: #edf6ff;
-  --muted: #91a4b8;
-  --green: #2ee59d;
-  --green-soft: rgba(46, 229, 157, 0.16);
-  --red: #ff6b7a;
-  --red-soft: rgba(255, 107, 122, 0.16);
-  --blue: #63a9ff;
-  --blue-soft: rgba(99, 169, 255, 0.15);
-  --amber: #ffd166;
-  --shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+  --bg: #eef6ff;
+  --bg-soft: #dcecff;
+  --panel: rgba(255, 255, 255, 0.88);
+  --panel-strong: rgba(255, 255, 255, 0.96);
+  --line: rgba(37, 99, 235, 0.16);
+  --text: #0f2f66;
+  --muted: #58739b;
+  --green: #0b74de;
+  --green-soft: rgba(11, 116, 222, 0.12);
+  --red: #1d4ed8;
+  --red-soft: rgba(29, 78, 216, 0.12);
+  --blue: #2563eb;
+  --blue-soft: rgba(37, 99, 235, 0.12);
+  --amber: #60a5fa;
+  --shadow: 0 24px 70px rgba(30, 64, 175, 0.16);
   --radius-xl: 28px;
   --radius-lg: 22px;
   --radius-md: 16px;
@@ -36,9 +36,9 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(46, 229, 157, 0.18), transparent 32rem),
-    radial-gradient(circle at 85% 10%, rgba(99, 169, 255, 0.2), transparent 30rem),
-    linear-gradient(145deg, #031019 0%, #08131f 48%, #09111b 100%);
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.2), transparent 34rem),
+    radial-gradient(circle at 85% 10%, rgba(96, 165, 250, 0.28), transparent 30rem),
+    linear-gradient(145deg, #f8fbff 0%, #eaf4ff 48%, #dbeafe 100%);
   color: var(--text);
 }
 
@@ -108,8 +108,8 @@ a {
   flex: 0 0 auto;
   place-items: center;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--green), var(--blue));
-  color: #031019;
+  background: linear-gradient(135deg, #0b74de, #60a5fa);
+  color: #ffffff;
   font-weight: 900;
   letter-spacing: -0.08em;
 }
@@ -130,7 +130,7 @@ a {
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(37, 99, 235, 0.06);
 }
 
 .topnav a,
@@ -157,7 +157,7 @@ a {
 .side-toggle button:hover,
 .quick-symbols button:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(37, 99, 235, 0.1);
 }
 
 .market-status {
@@ -165,7 +165,7 @@ a {
   gap: 8px;
   padding: 8px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(37, 99, 235, 0.08);
   color: var(--muted);
   font-size: 0.88rem;
   white-space: nowrap;
@@ -176,7 +176,7 @@ a {
   height: 9px;
   border-radius: 50%;
   background: var(--amber);
-  box-shadow: 0 0 0 6px rgba(255, 209, 102, 0.12);
+  box-shadow: 0 0 0 6px rgba(96, 165, 250, 0.16);
 }
 
 main {
@@ -202,8 +202,8 @@ main {
   overflow: hidden;
   padding: clamp(28px, 6vw, 70px);
   background:
-    linear-gradient(145deg, rgba(46, 229, 157, 0.16), transparent 42%),
-    linear-gradient(135deg, rgba(99, 169, 255, 0.2), rgba(13, 25, 39, 0.76));
+    linear-gradient(145deg, rgba(37, 99, 235, 0.12), transparent 42%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(219, 234, 254, 0.86));
   border: 1px solid var(--line);
 }
 
@@ -214,13 +214,13 @@ main {
   width: 22rem;
   height: 22rem;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(46, 229, 157, 0.22), transparent 70%);
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.2), transparent 70%);
   content: "";
 }
 
 .eyebrow {
   margin: 0 0 10px;
-  color: var(--green);
+  color: var(--blue);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -253,7 +253,7 @@ h2 {
   position: relative;
   z-index: 1;
   max-width: 680px;
-  color: #b7c6d8;
+  color: #446189;
   font-size: clamp(1rem, 2.5vw, 1.18rem);
   line-height: 1.7;
 }
@@ -293,14 +293,15 @@ h2 {
 }
 
 .button.primary {
-  background: linear-gradient(135deg, var(--green), #30c6ff);
-  color: #02131c;
-  box-shadow: 0 14px 34px rgba(46, 229, 157, 0.22);
+  background: linear-gradient(135deg, #0b74de, #60a5fa);
+  color: #ffffff;
+  box-shadow: 0 14px 34px rgba(37, 99, 235, 0.24);
 }
 
 .button.secondary {
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(37, 99, 235, 0.06);
+  color: var(--blue);
 }
 
 .button.small {
@@ -323,7 +324,7 @@ h2 {
 .order-form label {
   display: grid;
   gap: 8px;
-  color: #dce8f6;
+  color: #173b7a;
   font-weight: 800;
 }
 
@@ -339,19 +340,19 @@ select {
   border-radius: 16px;
   outline: none;
   padding: 0 14px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.86);
   color: var(--text);
 }
 
 select {
-  color: #02131c;
-  background: #dce8f6;
+  color: var(--text);
+  background: #ffffff;
 }
 
 input:focus,
 select:focus {
-  border-color: rgba(46, 229, 157, 0.7);
-  box-shadow: 0 0 0 4px rgba(46, 229, 157, 0.12);
+  border-color: rgba(37, 99, 235, 0.72);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
 .quick-symbols {
@@ -361,7 +362,7 @@ select:focus {
 
 .quick-symbols button {
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(37, 99, 235, 0.07);
 }
 
 .dashboard-grid,
@@ -408,7 +409,7 @@ select:focus {
   border-radius: 999px;
   padding: 7px 11px;
   background: var(--blue-soft);
-  color: #a9d1ff;
+  color: #1d4ed8;
   font-size: 0.85rem;
   font-weight: 900;
 }
@@ -441,9 +442,9 @@ select:focus {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    rgba(2, 8, 14, 0.32);
+    linear-gradient(rgba(37, 99, 235, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.08) 1px, transparent 1px),
+    rgba(239, 246, 255, 0.7);
   background-size: 100% 25%, 14.28% 100%, auto;
 }
 
@@ -459,7 +460,7 @@ select:focus {
   margin-top: 16px;
   padding: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(37, 99, 235, 0.07);
 }
 
 .range-switcher {
@@ -474,8 +475,8 @@ select:focus {
 
 .range-switcher button.active,
 .side-toggle button.active {
-  background: var(--text);
-  color: #061018;
+  background: var(--blue);
+  color: #ffffff;
 }
 
 .stat-grid {
@@ -490,7 +491,7 @@ select:focus {
 .position-row {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(255, 255, 255, 0.74);
 }
 
 .stat-card {
@@ -541,7 +542,7 @@ select:focus {
 .confirm-live {
   grid-template-columns: auto 1fr;
   align-items: start;
-  color: #cbd8e6;
+  color: #355984;
   font-size: 0.9rem;
   font-weight: 700;
 }
@@ -569,7 +570,7 @@ select:focus {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: rgba(46, 229, 157, 0.08);
+  background: rgba(37, 99, 235, 0.07);
 }
 
 .risk-grid span,
@@ -589,7 +590,7 @@ select:focus {
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: rgba(46, 229, 157, 0.08);
+  background: rgba(37, 99, 235, 0.07);
 }
 
 .watchlist-grid {
@@ -611,8 +612,8 @@ select:focus {
 
 .watch-card:hover,
 .watch-card.active {
-  border-color: rgba(46, 229, 157, 0.55);
-  background: rgba(46, 229, 157, 0.08);
+  border-color: rgba(37, 99, 235, 0.5);
+  background: rgba(37, 99, 235, 0.08);
   transform: translateY(-2px);
 }
 
@@ -641,7 +642,7 @@ select:focus {
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(255, 255, 255, 0.74);
 }
 
 .positions {
@@ -666,7 +667,7 @@ select:focus {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(255, 255, 255, 0.74);
 }
 
 .order-row strong {
@@ -691,13 +692,13 @@ select:focus {
   gap: 20px;
   overflow: hidden;
   background:
-    linear-gradient(135deg, rgba(46, 229, 157, 0.14), rgba(99, 169, 255, 0.11)),
+    linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(147, 197, 253, 0.2)),
     var(--panel-strong);
 }
 
 .insight-panel p:not(.eyebrow) {
   max-width: 820px;
-  color: #b7c6d8;
+  color: #446189;
   line-height: 1.7;
 }
 
@@ -707,11 +708,11 @@ select:focus {
 }
 
 .insight-list span {
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(37, 99, 235, 0.16);
   border-radius: 999px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.07);
-  color: #dce8f6;
+  background: rgba(255, 255, 255, 0.78);
+  color: #1d4ed8;
   font-weight: 800;
 }
 
@@ -724,7 +725,7 @@ select:focus {
   padding: 14px 16px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: rgba(5, 14, 24, 0.94);
+  background: rgba(255, 255, 255, 0.96);
   box-shadow: var(--shadow);
   color: var(--text);
   opacity: 0;
